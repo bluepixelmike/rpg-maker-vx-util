@@ -16,11 +16,11 @@ All credit and ownership for the original code goes to Enterbrain - the creators
   spec.homepage      = 'https://github.com/bluepixelmike/rpg-maker-vx-util'
   # TODO: spec.license
 
-  spec.files         = `git ls-files -z`.split("\x0") << 'lib/rpg_maker_vx.so'
+  spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
-  spec.extensions    = ['ext/rpg_maker_vx/extconf.rb']
+  spec.extensions    = ['ext/rpg_maker_vx_core/extconf.rb']
 
   spec.add_dependency 'rpg-maker-vx-core', '~> 1.0'
 

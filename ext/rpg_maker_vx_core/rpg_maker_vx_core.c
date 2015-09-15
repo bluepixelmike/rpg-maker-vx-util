@@ -280,7 +280,7 @@ void define_toneClass()
  */
 
 // Entry point called by Ruby.
-void Init_rpg_maker_vx()
+void Init_rpg_maker_vx_core()
 {
     define_tableClass();
     define_toneClass();
