@@ -3,6 +3,7 @@
 ### Ruby ###
 *.gem
 *.rbc
+*.so
 /.config
 /coverage/
 /InstalledFiles
