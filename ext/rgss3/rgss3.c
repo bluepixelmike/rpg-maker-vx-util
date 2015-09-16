@@ -486,6 +486,213 @@ VALUE toneClass_dump(VALUE self, VALUE level)
 }
 
 /**
+ * Color class
+ */
+
+#define GET_COLOR_VALUE(C) \
+    struct color *color; \
+    Data_Get_Struct(self, struct color, color); \
+    return INT2FIX(color->C)
+
+#define CORRECT_COLOR_VALUE(C, X, COLOR) ; \
+    int C = NUM2INT(X); \
+    if(C > 255) \
+        C = 255; \
+    else if(C < 0) \
+        C = 0; \
+    COLOR->C = C
+
+#define SET_COLOR_VALUE(C, X) \
+    struct color *color; \
+    Data_Get_Struct(self, struct color, color); \
+    CORRECT_COLOR_VALUE(C, X, color); \
+    return INT2FIX(C)
+
+struct color {
+    unsigned char r, g, b, a;
+};
+
+// Prototypes
+VALUE allocateColorClass(VALUE klass);
+VALUE colorClass_setValues(int argc, VALUE *argv, VALUE self);
+VALUE colorClass_init(int argc, VALUE *argv, VALUE self);
+VALUE colorClass_set(int argc, VALUE *argv, VALUE self);
+VALUE colorClass_getRed(VALUE self);
+VALUE colorClass_setRed(VALUE self, VALUE value);
+VALUE colorClass_getGreen(VALUE self);
+VALUE colorClass_setGreen(VALUE self, VALUE value);
+VALUE colorClass_getBlue(VALUE self);
+VALUE colorClass_setBlue(VALUE self, VALUE value);
+VALUE colorClass_getAlpha(VALUE self);
+VALUE colorClass_setAlpha(VALUE self, VALUE value);
+// TODO: Marshaled data is stored as little-endian
+VALUE colorClass_load (VALUE colorClass, VALUE marshaled);
+VALUE colorClass_dump(VALUE self, VALUE level);
+
+// Implementation
+
+VALUE allocateColorClass(VALUE klass)
+{
+    struct color *color;
+    return Data_Make_Struct(klass, struct color, 0, -1, color);
+}
+
+VALUE colorClass_setValues(int argc, VALUE *argv, VALUE self)
+{
+    struct color *color;
+    Data_Get_Struct(self, struct color, color);
+    color->a = 255;
+
+    VALUE red, green, blue, alpha;
+    switch(rb_scan_args(argc, argv, "31", &red, &green, &blue, &alpha))
+    {
+    case 4: // red, green, blue, alpha
+        {
+            CORRECT_COLOR_VALUE(a, alpha, color);
+        }
+        // Fallthrough to set red, green, and blue
+    case 3: // red, green, blue
+        CORRECT_COLOR_VALUE(r, red,   color);
+        CORRECT_COLOR_VALUE(g, green, color);
+        CORRECT_COLOR_VALUE(b, blue,  color);
+    }
+
+    return self;
+}
+
+VALUE colorClass_initialize(int argc, VALUE *argv, VALUE self)
+{
+    return argc ? colorClass_setValues(argc, argv, self) : self;
+}
+
+VALUE colorClass_set(int argc, VALUE *argv, VALUE self)
+{
+    if(argc == 1)
+    {// set(color)
+        struct color *color, *other;
+        Data_Get_Struct(self, struct color, color);
+        Data_Get_Struct(argv[0], struct color, other);
+
+        color->r = other->r;
+        color->g = other->g;
+        color->b = other->b;
+        color->a = other->a;
+    }
+
+    else // set(red, green, blue [, alpha])
+        colorClass_setValues(argc, argv, self);
+
+    return self;
+}
+
+VALUE colorClass_getRed(VALUE self)
+{
+    GET_COLOR_VALUE(r);
+}
+
+VALUE colorClass_setRed(VALUE self, VALUE value)
+{
+    SET_COLOR_VALUE(r, value);
+}
+
+VALUE colorClass_getGreen(VALUE self)
+{
+    GET_COLOR_VALUE(g);
+}
+
+VALUE colorClass_setGreen(VALUE self, VALUE value)
+{
+    SET_COLOR_VALUE(g, value);
+}
+
+VALUE colorClass_getBlue(VALUE self)
+{
+    GET_COLOR_VALUE(b);
+}
+
+VALUE colorClass_setBlue(VALUE self, VALUE value)
+{
+    SET_COLOR_VALUE(b, value);
+}
+
+VALUE colorClass_getAlpha(VALUE self)
+{
+    GET_COLOR_VALUE(a);
+}
+
+VALUE colorClass_setAlpha(VALUE self, VALUE value)
+{
+    SET_COLOR_VALUE(a, value);
+}
+
+VALUE colorClass_load(VALUE colorClass, VALUE marshaled)
+{
+    // For SOME MAGICAL REASON, the Enterbrain devs decided to use
+    // doubles to store a color value from 0 to 255. =(
+    double red, green, blue, alpha;
+    char *marshaledBytes = StringValuePtr(marshaled);
+    memcpy(&red,   &marshaledBytes[0],  8);
+    memcpy(&green, &marshaledBytes[8],  8);
+    memcpy(&blue,  &marshaledBytes[16], 8);
+    memcpy(&alpha, &marshaledBytes[24], 8);
+    // TODO: Assert values are 0 to 255
+    unsigned char r = (unsigned char)red;
+    unsigned char g = (unsigned char)green;
+    unsigned char b = (unsigned char)blue;
+    unsigned char a = (unsigned char)alpha;
+
+    VALUE self = allocateColorClass(colorClass);
+    struct color *color;
+    Data_Get_Struct(self, struct color, color);
+    color->r = r;
+    color->g = g;
+    color->b = b;
+    color->a = a;
+    return self;
+}
+
+VALUE colorClass_dump(VALUE self, VALUE level)
+{
+    struct color *color;
+    Data_Get_Struct(self, struct color, color);
+    double r = (double)color->r;
+    double g = (double)color->g;
+    double b = (double)color->b;
+    double a = (double)color->a;
+    int dataLen = sizeof(double) * 4;
+    char *marshaledBytes = (char *)malloc(dataLen);
+    memcpy(&marshaledBytes[0],  &r, 8);
+    memcpy(&marshaledBytes[8],  &g, 8);
+    memcpy(&marshaledBytes[16], &b, 8);
+    memcpy(&marshaledBytes[24], &a, 8);
+    return rb_str_new(marshaledBytes, dataLen);
+}
+
+// Defines the Color class and its methods.
+void define_colorClass()
+{
+    // Define the class.
+    VALUE colorClass = rb_define_class("Color", rb_cObject);
+    rb_define_alloc_func(colorClass, allocateColorClass);
+
+    // Define its methods.
+    rb_define_method(colorClass, "initialize", colorClass_initialize, -1);
+    rb_define_method(colorClass, "set",        colorClass_set,        -1);
+    rb_define_method(colorClass, "red",        colorClass_getRed,      0);
+    rb_define_method(colorClass, "red=",       colorClass_setRed,      1);
+    rb_define_method(colorClass, "green",      colorClass_getGreen,    0);
+    rb_define_method(colorClass, "green=",     colorClass_setGreen,    1);
+    rb_define_method(colorClass, "blue",       colorClass_getBlue,     0);
+    rb_define_method(colorClass, "blue=",      colorClass_setBlue,     1);
+    rb_define_method(colorClass, "alpha",      colorClass_getAlpha,    0);
+    rb_define_method(colorClass, "alpha=",     colorClass_setAlpha,    1);
+
+    // Define the marshal methods.
+    rb_define_singleton_method(colorClass, "_load", colorClass_load, 1);
+    rb_define_method(colorClass, "_dump", colorClass_dump, 1);
+}
+
+/**
  * Initialization
  */
 
@@ -494,4 +701,5 @@ void Init_rgss3()
 {
     define_tableClass();
     define_toneClass();
+    define_colorClass();
 }
