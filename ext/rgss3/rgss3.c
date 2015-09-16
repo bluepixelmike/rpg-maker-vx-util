@@ -270,9 +270,219 @@ VALUE tableClass_dump(VALUE self, VALUE level)
  * Tone class
  */
 
+#define GET_TONE_VALUE(C) \
+    struct tone *tone; \
+    Data_Get_Struct(self, struct tone, tone); \
+    return INT2FIX(tone->C)
+
+#define CORRECT_TONE_VALUE(C, X, TONE) \
+    int C = NUM2INT(X); \
+    if(C > 255) \
+        C = 255; \
+    else if(C < -255) \
+        C = -255; \
+    TONE->C = C
+
+#define CORRECT_GRAY_VALUE(X, TONE) \
+    int a = NUM2INT(X); \
+    if(a > 255) \
+        a = 255; \
+    else if(a < 0) \
+        a = 0; \
+    TONE->a = a
+
+#define SET_TONE_VALUE(C, X) \
+    struct tone *tone; \
+    Data_Get_Struct(self, struct tone, tone); \
+    CORRECT_TONE_VALUE(C, X, tone); \
+    return INT2FIX(C)
+
+struct tone {
+    unsigned short int r, g, b;
+    unsigned char a;
+};
+
+// Prototypes
+VALUE allocateToneClass(VALUE klass);
+VALUE toneClass_setValues(int argc, VALUE *argv, VALUE self);
+VALUE toneClass_initialize(int argc, VALUE *argv, VALUE self);
+VALUE toneClass_set(int argc, VALUE *argv, VALUE self);
+VALUE toneClass_getRed(VALUE self);
+VALUE toneClass_setRed(VALUE self, VALUE value);
+VALUE toneClass_getGreen(VALUE self);
+VALUE toneClass_setGreen(VALUE self, VALUE value);
+VALUE toneClass_getBlue(VALUE self);
+VALUE toneClass_setBlue(VALUE self, VALUE value);
+VALUE toneClass_getGray(VALUE self);
+VALUE toneClass_setGray(VALUE self, VALUE value);
+// TODO: Marshaled data is stored as little-endian
+VALUE toneClass_load(VALUE toneClass, VALUE marshaled);
+VALUE toneClass_dump(VALUE self, VALUE level);
+
 // Defines the Tone class and its methods.
 void define_toneClass()
 {
+    // Create the Tone class.
+    VALUE toneClass = rb_define_class("Tone", rb_cObject);
+    rb_define_alloc_func(toneClass, allocateToneClass);
+
+    // Define its methods.
+    rb_define_method(toneClass, "initialize", toneClass_initialize, -1);
+    rb_define_method(toneClass, "set",        toneClass_set,        -1);
+    rb_define_method(toneClass, "red",        toneClass_getRed,      0);
+    rb_define_method(toneClass, "red=",       toneClass_setRed,      1);
+    rb_define_method(toneClass, "green",      toneClass_getGreen,    0);
+    rb_define_method(toneClass, "green=",     toneClass_setGreen,    1);
+    rb_define_method(toneClass, "blue",       toneClass_getBlue,     0);
+    rb_define_method(toneClass, "blue=",      toneClass_setBlue,     1);
+    rb_define_method(toneClass, "gray",       toneClass_getGray,     0);
+    rb_define_method(toneClass, "gray=",      toneClass_setGray,     1);
+
+    // Define the marshal methods.
+    rb_define_singleton_method(toneClass, "_load", toneClass_load, 1);
+    rb_define_method(toneClass, "_dump", toneClass_dump, 1);
+}
+
+// Implementation
+
+VALUE allocateToneClass(VALUE klass)
+{
+    struct tone *tone;
+    return Data_Make_Struct(klass, struct tone, 0, -1, tone);
+}
+
+VALUE toneClass_setValues(int argc, VALUE *argv, VALUE self)
+{
+    struct tone *tone;
+    VALUE red, green, blue, gray;
+
+    if(rb_scan_args(argc, argv, "31", &red, &green, &blue, &gray))
+    {// red, green, blue [, gray]
+        Data_Get_Struct(self, struct tone, tone);
+        CORRECT_TONE_VALUE(r, red,   tone);
+        CORRECT_TONE_VALUE(g, green, tone);
+        CORRECT_TONE_VALUE(b, blue,  tone);
+
+        if(NIL_P(gray))
+            tone->a = 0; // Default gray to 0 when omitted
+        else
+        {// Use provided gray value
+            CORRECT_GRAY_VALUE(gray, tone);
+        }
+    }
+
+    return self;
+}
+
+VALUE toneClass_initialize(int argc, VALUE *argv, VALUE self)
+{
+    return argc ? toneClass_setValues(argc, argv, self) : self;
+}
+
+VALUE toneClass_set(int argc, VALUE *argv, VALUE self)
+{
+    if(argc == 1)
+    {// set(tone)
+        struct tone *tone, *other;
+        Data_Get_Struct(self, struct tone, tone);
+        Data_Get_Struct(argv[0], struct tone, other);
+
+        tone->r = other->r;
+        tone->g = other->g;
+        tone->b = other->b;
+        tone->a = other->a;
+    }
+
+    else // set(red, green, blue [, gray])
+        toneClass_setValues(argc, argv, self);
+
+    return self;
+}
+
+VALUE toneClass_getRed(VALUE self)
+{
+    GET_TONE_VALUE(r);
+}
+
+VALUE toneClass_setRed(VALUE self, VALUE value)
+{
+    SET_TONE_VALUE(r, value);
+}
+
+VALUE toneClass_getGreen(VALUE self)
+{
+    GET_TONE_VALUE(g);
+}
+
+VALUE toneClass_setGreen(VALUE self, VALUE value)
+{
+    SET_TONE_VALUE(g, value);
+}
+
+VALUE toneClass_getBlue(VALUE self)
+{
+    GET_TONE_VALUE(b);
+}
+
+VALUE toneClass_setBlue(VALUE self, VALUE value)
+{
+    SET_TONE_VALUE(b, value);
+}
+
+VALUE toneClass_getGray(VALUE self)
+{
+    GET_TONE_VALUE(a);
+}
+
+VALUE toneClass_setGray(VALUE self, VALUE value)
+{
+    struct tone *tone;
+    Data_Get_Struct(self, struct tone, tone);
+    CORRECT_GRAY_VALUE(value, tone);
+    return INT2FIX(a);
+}
+
+// TODO: Marshaled data is stored as little-endian
+
+VALUE toneClass_load(VALUE toneClass, VALUE marshaled)
+{
+    double red, green, blue, gray;
+    char *marshaledBytes = StringValuePtr(marshaled);
+    memcpy(&red,   &marshaledBytes[0],  8);
+    memcpy(&green, &marshaledBytes[8],  8);
+    memcpy(&blue,  &marshaledBytes[16], 8);
+    memcpy(&gray,  &marshaledBytes[24], 8);
+    // TODO: Assert values are -255 to 255 and 0 to 255 for gray
+    unsigned short int r = (unsigned short int)red;
+    unsigned short int g = (unsigned short int)green;
+    unsigned short int b = (unsigned short int)blue;
+    unsigned char      a = (unsigned char)gray;
+
+    VALUE self = allocateToneClass(toneClass);
+    struct tone *tone;
+    Data_Get_Struct(self, struct tone, tone);
+    tone->r = r;
+    tone->g = g;
+    tone->b = b;
+    tone->a = a;
+    return self;
+}
+
+VALUE toneClass_dump(VALUE self, VALUE level)
+{
+    struct tone *tone;
+    Data_Get_Struct(self, struct tone, tone);
+    double r = (double)tone->r;
+    double g = (double)tone->g;
+    double b = (double)tone->b;
+    double a = (double)tone->a;
+    int dataLen = sizeof(double) * 4;
+    char *marshaledBytes = (char *)malloc(dataLen);
+    memcpy(&marshaledBytes[0],  &r, 8);
+    memcpy(&marshaledBytes[8],  &g, 8);
+    memcpy(&marshaledBytes[16], &b, 8);
+    memcpy(&marshaledBytes[24], &a, 8);
+    return rb_str_new(marshaledBytes, dataLen);
 }
 
 /**
