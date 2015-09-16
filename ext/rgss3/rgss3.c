@@ -1,5 +1,5 @@
-// rpg_maker_vx.c
-// This file implements some of the functionality from the built-in RPG Maker classes.
+// rgss3.c
+// This file implements some of the functionality from RGSS3.
 // Only the functionality required to make this gem work is implemented here.
 
 #include <stdio.h>
@@ -280,7 +280,7 @@ void define_toneClass()
  */
 
 // Entry point called by Ruby.
-void Init_rpg_maker_vx_core()
+void Init_rgss3()
 {
     define_tableClass();
     define_toneClass();
