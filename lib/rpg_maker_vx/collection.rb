@@ -30,6 +30,14 @@ module RPGMakerVX
       self
     end
 
+    # Retrieve the number of items in the collection.
+    # @return [Fixnum]
+    def length
+      @items.length
+    end
+
+    alias_method :size, :length
+
     # Retrieves an item by index.
     # @param index [Fixnum] Index of the item.
     # @return Item at the specified index.
