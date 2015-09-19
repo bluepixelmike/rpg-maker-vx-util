@@ -5,6 +5,9 @@ module RPGMakerVX
   # Contains methods for accessing all information in an RPG Maker VX project.
   class Project
 
+    # Sub-directory containing the database.
+    DATABASE_SUBDIR = 'Data'
+
     # Provides access to all of the data-driven objects.
     # Practically everything is located here except for the maps and resource files.
     # @return [Database]
@@ -12,9 +15,10 @@ module RPGMakerVX
 
     # Creates a new, empty RPG Maker VX project.
     # @param name [String] Name of the project.
+    # @param database [Database] Existing database to use for resources.
     # @note The project will not be created on disk until +#save+ is called.
-    def initialize(name)
-      fail NotImplementedError
+    def initialize(name, database = nil)
+      @database = database || Database.new({})
     end
 
     # Saves the entire project to a directory.
@@ -28,7 +32,10 @@ module RPGMakerVX
     # @param path [String] Path to the directory containing the project files.
     # @return [Project]
     def self.load(path)
-      fail NotImplementedError
+      # Load the database.
+      data_path = File.join(path, DATABASE_SUBDIR)
+      database  = Database.load(data_path)
+      Project.new('TODO', database)
     end
 
   end
