@@ -15,7 +15,7 @@ module RPGMakerVX
 
         # Loads a set of actors from a file.
         # @param filename [String] Path to the actors file.
-        # @return [ActorsCollection]
+        # @return [ActorCollection]
         def self.load(filename)
           items = load_items(filename, ::RPG::Actor)
           collection = ActorCollection.new
