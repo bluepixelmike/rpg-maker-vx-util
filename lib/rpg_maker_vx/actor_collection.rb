@@ -8,14 +8,14 @@ module RPGMakerVX
 
     # Creates an empty collection of actors.
     def initialize
-      super(RPG::Actor)
+      super(::RPG::Actor)
     end
 
     # Loads a set of actors from a file.
     # @param filename [String] Path to the actors file.
     # @return [ActorsCollection]
     def self.load(filename)
-      items = load_items(filename, RPG::Actor)
+      items = load_items(filename, ::RPG::Actor)
       collection = ActorCollection.new
       items.each do |item|
         collection << item
