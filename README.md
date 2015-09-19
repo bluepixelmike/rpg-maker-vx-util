@@ -10,6 +10,10 @@ This gem is not a substitute for RPG Maker VX!
 The original program is still needed to generate the binary (.exe and .dll) files.
 These files are proprietary of Enterbrain.
 
+[![Travis CI](https://travis-ci.org/bluepixelmike/rpg-maker-vx-util.svg)](https://travis-ci.org/bluepixelmike/rpg-maker-vx-util)
+[![Code Climate](https://codeclimate.com/github/bluepixelmike/rpg-maker-vx-util/badges/gpa.svg)](https://codeclimate.com/github/bluepixelmike/rpg-maker-vx-util)
+[![Test Coverage](https://codeclimate.com/github/bluepixelmike/rpg-maker-vx-util/badges/coverage.svg)](https://codeclimate.com/github/bluepixelmike/rpg-maker-vx-util/coverage)
+
 ## Installation
 
 Add this line to your application's Gemfile:
