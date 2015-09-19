@@ -1,4 +1,4 @@
-require_relative 'actor_collection'
+require_relative 'resources/collections'
 
 module RPGMakerVX
 
@@ -12,7 +12,7 @@ module RPGMakerVX
     ACTORS_FILE = 'Actors' + DATA_FILE_EXTENSION
 
     # Provides access to actor information.
-    # @return [ActorCollection]
+    # @return [Resources::Collections::ActorCollection]
     attr_reader :actors
 
     attr_reader :classes
@@ -44,7 +44,7 @@ module RPGMakerVX
     # Creates an database with pre-populated resources.
     # @param resources [Hash<Symbol => Object>]
     def initialize(resources)
-      @actors = resources[:actors] || ActorCollection.new
+      @actors = resources[:actors] || Resources::Collections::ActorCollection.new
     end
 
     # Loads the database components of a project.
@@ -58,7 +58,7 @@ module RPGMakerVX
 
       # Load each resource.
       resources = {
-          :actors => ActorCollection.load(resource_paths[:actors])
+          :actors => Resources::Collections::ActorCollection.load(resource_paths[:actors])
       }
 
       Database.new(resources)
