@@ -8,29 +8,33 @@ module RPGMakerVX
     # Create the base collection.
     # @param type [Class] Expected type of each item.
     def initialize(type)
-      failt NotImplementedError
+      @items = []
+      @type  = type
     end
 
     # Adds an item to the collection.
     # @param value New item to add.
-    # @return [void]
+    # @return [self]
     # @raise [TypeError] The item being added isn't the same type as the others.
     def <<(value)
-      failt NotImplementedError
+      fail TypeError unless value.is_a?(@type)
+      @items << value
+      self
     end
 
     # Iterates over each item in the collection.
     # @yieldparam item Each item in the collection.
-    # @return [void]
+    # @return [self]
     def each(&block)
-      failt NotImplementedError
+      @items.each(&block)
+      self
     end
 
     # Retrieves an item by index.
     # @param index [Fixnum] Index of the item.
     # @return Item at the specified index.
     def [](index)
-      failt NotImplementedError
+      @items[index]
     end
 
     # Updates an item at an index.
@@ -38,7 +42,8 @@ module RPGMakerVX
     # @param value New item to put in place.
     # @return [void]
     def []=(index, value)
-      failt NotImplementedError
+      fail TypeError unless value.is_a?(@type)
+      @items[index] = value
     end
 
     # Loads a collection of items from an RPG Maker VX data file.
@@ -46,14 +51,36 @@ module RPGMakerVX
     # @param type [Class] Expected type of each item.
     # @return [Array] List of items from the file.
     def self.load_items(filename, type)
-      failt NotImplementedError
+      # Load the contents of the file.
+      obj = File.open(filename, 'rb') do |f|
+        Marshal.load(f)
+      end
+
+      # The contents of the file must be an array.
+      fail TypeError unless obj.is_a?(Array)
+
+      # Only select the objects of the expected type.
+      # This also removes nil-values, especially the leading one.
+      obj.select do |item|
+        item.is_a?(type)
+      end
     end
 
     # Saves the collection of items to an RPG Maker VX data file.
     # @param filename [String] Path to the file to save to.
     # @return [void]
     def save(filename)
-      failt NotImplementedError
+      # Create the list to marshal.
+      # The first item is always nil.
+      list = [nil]
+      list.concat(@items)
+
+      # Dump the data to the file.
+      File.open(filename, 'wb') do |f|
+        f.write Marshal.dump(list)
+      end
+
+      nil
     end
 
   end
