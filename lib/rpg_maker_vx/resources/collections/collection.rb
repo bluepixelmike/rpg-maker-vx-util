@@ -19,7 +19,7 @@ module RPGMakerVX
         # @return [self]
         # @raise [TypeError] The item being added isn't the same type as the others.
         def <<(value)
-          fail TypeError unless value.is_a?(@type)
+          fail TypeError unless value.kind_of?(@type)
           @items << value
           self
         end
@@ -52,7 +52,7 @@ module RPGMakerVX
         # @param value New item to put in place.
         # @return [void]
         def []=(index, value)
-          fail TypeError unless value.is_a?(@type)
+          fail TypeError unless value.kind_of?(@type)
           @items[index] = value
         end
 
@@ -72,7 +72,7 @@ module RPGMakerVX
           # Only select the objects of the expected type.
           # This also removes nil-values, especially the leading one.
           obj.select do |item|
-            item.is_a?(type)
+            item.kind_of?(type)
           end
         end
 
