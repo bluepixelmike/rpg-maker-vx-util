@@ -15,7 +15,7 @@ module RPGMakerVX
     # @param filename [String] Path to the actors file.
     # @return [ActorsCollection]
     def self.load(filename)
-      items = super.load_items(filename, RPG::Actor)
+      items = load_items(filename, RPG::Actor)
       collection = ActorCollection.new
       items.each do |item|
         collection << item
