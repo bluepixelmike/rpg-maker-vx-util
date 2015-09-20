@@ -18,7 +18,7 @@ module RPGMakerVX
     # @param database [Database] Existing database to use for resources.
     # @note The project will not be created on disk until +#save+ is called.
     def initialize(name, database = nil)
-      @database = database || Database.new({})
+      @database = database || Database.new
     end
 
     # Saves the entire project to a directory.

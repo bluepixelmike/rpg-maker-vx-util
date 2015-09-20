@@ -132,8 +132,8 @@ module RPGMakerVX
     attr_reader :system
 
     # Creates an database with pre-populated resources.
-    # @param resources [Hash<Symbol => Resources::Collections::Collection>]
-    def initialize(resources)
+    # @param resources [Hash<Symbol => [Resources::Collection, ::RPG::System]>]
+    def initialize(resources = {})
       @collections = Hash[COLLECTION_TYPE_MAP.map do |key, item_type|
                             collection = resources[key] || Resources::Collection.new(item_type)
                             [key, collection]
