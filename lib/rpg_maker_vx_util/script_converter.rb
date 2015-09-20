@@ -1,3 +1,13 @@
+class String
+  def snake_case
+    self.gsub(/::/, '/').
+        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+        gsub(/([a-z\d])([A-Z])/,'\1_\2').
+        tr('-', '_').
+        downcase
+  end
+end
+
 module RPGMakerVXUtil
 
   # Converts scripts between RPG Maker VX format and structured plain-text files.
@@ -59,7 +69,60 @@ module RPGMakerVXUtil
       # @return [void]
       # @note Empty scripts will be omitted.
       def export_to_flat_files(project, dest, options = { :line_endings => :crlf })
-        fail NotImplementedError
+        # Make destination directory if it doesn't already exist.
+        Dir.mkdir(dest) unless Dir.exist?(dest)
+
+        # Skip the empty scripts.
+        script_names = project.scripts.scripts.reject do |script|
+          script.contents.empty?
+        end.map do |script|
+          # Construct file name.
+          name = script.name.snake_case
+          file = name + '.rb'
+          path = File.join(dest, file)
+
+          # Convert to the desired line-ending.
+          contents = script.contents
+          case(options[:line_endings])
+            when :lf
+              contents.gsub!("\r\n", "\n")
+            else # :crlf
+              contents.gsub!(/\r?\n/, "\r\n")
+          end
+
+          # Write the contents of the script to the file.
+          File.open(path, 'wb') do |f|
+            # Mark file as UTF-8.
+            f.write '# encoding: UTF-8'
+            f.write line_ending
+
+            # Dump the script to the file.
+            f.write contents
+          end
+
+          name
+        end
+
+        line_ending = case(options[:line_endings])
+                        when :lf
+                          "\n"
+                        else # :crlf
+                          "\r\n"
+                      end
+
+        # Create the "include-all" script.
+        top_name = File.basename(dest)
+        top_file = dest + '.rb'
+        File.open(top_file, 'wb') do |f|
+          # Mark file as UTF-8.
+          f.write '# encoding: UTF-8'
+          f.write line_ending
+
+          script_names.each do |name|
+            f.write "require_relative '#{top_name}/#{name}'"
+            f.write line_ending
+          end
+        end
       end
 
       # Export from RPG Maker VX to file.
@@ -73,10 +136,10 @@ module RPGMakerVXUtil
       # @return [void]
       def export_to_single_file(project, filename, options = { :line_endings => :crlf, :labels => false })
         line_ending = case(options[:line_endings])
-                        when :crlf
-                          "\r\n"
                         when :lf
                           "\n"
+                        else # :crlf
+                          "\r\n"
                       end
 
         File.open(filename, 'wb') do |f|
@@ -97,10 +160,10 @@ module RPGMakerVXUtil
             # Convert to the desired line-ending.
             contents = script.contents
             case(options[:line_endings])
-              when :crlf
-                contents.gsub!(/\r?\n/, "\r\n")
               when :lf
                 contents.gsub!("\r\n", "\n")
+              else # :crlf
+                contents.gsub!(/\r?\n/, "\r\n")
             end
 
             # Write the script's contents.
