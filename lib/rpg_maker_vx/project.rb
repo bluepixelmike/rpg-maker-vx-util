@@ -1,4 +1,5 @@
 require_relative 'database'
+require_relative 'resources/script_set'
 
 module RPGMakerVX
 
@@ -6,19 +7,28 @@ module RPGMakerVX
   class Project
 
     # Sub-directory containing the database.
-    DATABASE_SUBDIR = 'Data'
+    DATABASE_SUBDIR = 'Data'.freeze
+
+    # Name of the scripts file.
+    SCRIPTS_FILE_NAME = ('Scripts' + Database::DATA_FILE_EXTENSION).freeze
 
     # Provides access to all of the data-driven objects.
     # Practically everything is located here except for the maps and resource files.
     # @return [Database]
     attr_reader :database
 
+    # Provides access to the scripts.
+    # @return [Resources::ScriptSet]
+    attr_reader :scripts
+
     # Creates a new, empty RPG Maker VX project.
     # @param name [String] Name of the project.
     # @param database [Database] Existing database to use for resources.
+    # @param scripts [Resources::ScriptSet] Existing set of scripts to use.
     # @note The project will not be created on disk until +#save+ is called.
-    def initialize(name, database = nil)
+    def initialize(name, database = nil, scripts = nil)
       @database = database || Database.new
+      @scripts  = scripts  || Resources::ScriptSet.new
     end
 
     # Saves the entire project to a directory.
@@ -35,7 +45,12 @@ module RPGMakerVX
       # Load the database.
       data_path = File.join(path, DATABASE_SUBDIR)
       database  = Database.load(data_path)
-      Project.new('TODO', database)
+
+      # Load the scripts
+      script_path = File.join(data_path, SCRIPTS_FILE_NAME)
+      scripts     = Resources::ScriptSet.load(script_path)
+
+      Project.new('TODO', database, scripts)
     end
 
   end
