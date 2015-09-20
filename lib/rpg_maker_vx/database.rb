@@ -1,4 +1,5 @@
-require_relative 'resources/collections'
+require 'rpg_maker_rgss3'
+require_relative 'resources/collection'
 
 module RPGMakerVX
 
@@ -6,91 +7,122 @@ module RPGMakerVX
   class Database
 
     # File extension for all data types.
-    DATA_FILE_EXTENSION = '.rvdata2'
+    DATA_FILE_EXTENSION = '.rvdata2'.freeze
 
-    # Name of the actors file.
-    ACTORS_FILE = 'Actors' + DATA_FILE_EXTENSION
+    # Names of each collection file.
+    COLLECTION_FILE_NAMES = {
+        :actors        => ('Actors'       + DATA_FILE_EXTENSION).freeze,
+        :classes       => ('Classes'      + DATA_FILE_EXTENSION).freeze,
+        :skills        => ('Skills'       + DATA_FILE_EXTENSION).freeze,
+        :items         => ('Items'        + DATA_FILE_EXTENSION).freeze,
+        :weapons       => ('Weapons'      + DATA_FILE_EXTENSION).freeze,
+        :armors        => ('Armors'       + DATA_FILE_EXTENSION).freeze,
+        :enemies       => ('Enemies'      + DATA_FILE_EXTENSION).freeze,
+        :troops        => ('Troops'       + DATA_FILE_EXTENSION).freeze,
+        :states        => ('States'       + DATA_FILE_EXTENSION).freeze,
+        :animations    => ('Animations'   + DATA_FILE_EXTENSION).freeze,
+        :tilesets      => ('Tilesets'     + DATA_FILE_EXTENSION).freeze,
+        :common_events => ('CommonEvents' + DATA_FILE_EXTENSION).freeze
+    }.freeze
 
-    # Name of the classes file.
-    CLASSES_FILE = 'Classes' + DATA_FILE_EXTENSION
+    COLLECTION_TYPE_MAP = {
+        :actors        => ::RPG::Actor,
+        :classes       => ::RPG::Class,
+        :skills        => ::RPG::Skill,
+        :items         => ::RPG::Item,
+        :weapons       => ::RPG::Weapon,
+        :armors        => ::RPG::Armor,
+        :enemies       => ::RPG::Enemy,
+        :troops        => ::RPG::Troop,
+        :states        => ::RPG::State,
+        :animations    => ::RPG::Animation,
+        :tilesets      => ::RPG::Tileset,
+        :common_events => ::RPG::CommonEvent
+    }.freeze
 
-    # Name of the skills file.
-    SKILLS_FILE = 'Skills' + DATA_FILE_EXTENSION
-
-    # Name of the items file.
-    ITEMS_FILE = 'Items' + DATA_FILE_EXTENSION
-
-    # Name of the weapons file.
-    WEAPONS_FILE = 'Weapons' + DATA_FILE_EXTENSION
-
-    # Name of the armors file.
-    ARMORS_FILE = 'Armors' + DATA_FILE_EXTENSION
-
-    # Name of the enemies file.
-    ENEMIES_FILE = 'Enemies' + DATA_FILE_EXTENSION
-
-    # Name of the troops file.
-    TROOPS_FILE = 'Troops' + DATA_FILE_EXTENSION
-
-    # Name of the states file.
-    STATES_FILE = 'States' + DATA_FILE_EXTENSION
-
-    # Name of the animations file.
-    ANIMATIONS_FILE = 'Animations' + DATA_FILE_EXTENSION
-
-    # Name of the tilsets file.
-    TILESETS_FILE = 'Tilesets' + DATA_FILE_EXTENSION
-
-    # Name of the common events file.
-    COMMON_EVENTS_FILE = 'CommonEvents' + DATA_FILE_EXTENSION
-
+    # @!attribute [r] actors
     # Provides access to actor information.
-    # @return [Resources::Collections::ActorCollection]
-    attr_reader :actors
+    # @return [Resources::Collection<::RPG::Actor>]
+    def actors
+      @collections[:actors]
+    end
 
+    # @!attribute [r] classes
     # Provides access to class information.
-    # @return [Resources::Collections::ClassCollection]
-    attr_reader :classes
+    # @return [Resources::Collection<::RPG::Class>]
+    def classes
+      @collections[:classes]
+    end
 
+    # @!attribute [r] skills
     # Provides access to skill information.
-    # @return [Resources::Collections::SkillCollection]
-    attr_reader :skills
+    # @return [Resources::Collection<::RPG::Skill>]
+    def skills
+      @collections[:skills]
+    end
 
+    # @!attribute [r] items
     # Provides access to item information.
-    # @return [Resources::Collections::ItemCollection]
-    attr_reader :items
+    # @return [Resources::Collection<::RPG::Item>]
+    def items
+      @collections[:items]
+    end
 
+    # @!attribute [r] weapons
     # Provides access to weapon information.
-    # @return [Resources::Collections::WeaponCollection]
-    attr_reader :weapons
+    # @return [Resources::Collection<::RPG::Weapon>]
+    def weapons
+      @collections[:weapons]
+    end
 
+    # @!attribute [r] armors
     # Provides access to armor information.
-    # @return [Resources::Collections::ArmorCollection]
-    attr_reader :armors
+    # @return [Resources::Collection<::RPG::Armor>]
+    def armors
+      @collections[:armors]
+    end
 
+    # @!attribute [r] enemies
     # Provides access to enemy information.
-    # @return [Resources::Collections::EnemyCollection]
-    attr_reader :enemies
+    # @return [Resources::Collection<::RPG::Enemy>]
+    def enemies
+      @collections[:enemies]
+    end
 
+    # @!attribute [r] troops
     # Provides access to troop information.
-    # @return [Resources::Collections::TroopCollection]
-    attr_reader :troops
+    # @return [Resources::Collection<::RPG::Troop>]
+    def troops
+      @collections[:troops]
+    end
 
+    # @!attribute [r] states
     # Provides access to state information.
-    # @return [Resources::Collections::StateCollection]
-    attr_reader :states
+    # @return [Resources::Collection<::RPG::State>]
+    def states
+      @collections[:states]
+    end
 
+    # @!attribute [r] animations
     # Provides access to animation information.
-    # @return [Resources::Collections::AnimationCollection]
-    attr_reader :animations
+    # @return [Resources::Collection<::RPG::Animation>]
+    def animations
+      @collections[:animations]
+    end
 
+    # @!attribute [r] tilesets
     # Provides access to tileset information.
-    # @return [Resources::Collections::TilesetCollection]
-    attr_reader :tilesets
+    # @return [Resources::Collection<::RPG::Tileset>]
+    def tilesets
+      @collections[:tilesets]
+    end
 
+    # @!attribute [r] common_events
     # Provides access to common event information.
-    # @return [Resources::Collections::CommonEventCollection]
-    attr_reader :common_events
+    # @return [Resources::Collection<::RPG::CommonEvent>]
+    def common_events
+      @collections[:common_events]
+    end
 
     attr_reader :system
 
@@ -99,56 +131,30 @@ module RPGMakerVX
     # Creates an database with pre-populated resources.
     # @param resources [Hash<Symbol => Resources::Collections::Collection>]
     def initialize(resources)
-      @actors        = resources[:actors]        || Resources::Collections::ActorCollection.new
-      @classes       = resources[:classes]       || Resources::Collections::ClassCollection.new
-      @skills        = resources[:skills]        || Resources::Collections::SkillCollection.new
-      @items         = resources[:items]         || Resources::Collections::ItemCollection.new
-      @weapons       = resources[:weapons]       || Resources::Collections::WeaponCollection.new
-      @armors        = resources[:armors]        || Resources::Collections::ArmorCollection.new
-      @enemies       = resources[:enemies]       || Resources::Collections::EnemyCollection.new
-      @troops        = resources[:troops]        || Resources::Collections::TroopCollection.new
-      @states        = resources[:states]        || Resources::Collections::StateCollection.new
-      @animations    = resources[:animations]    || Resources::Collections::AnimationCollection.new
-      @tilesets      = resources[:tilesets]      || Resources::Collections::TilesetCollection.new
-      @common_events = resources[:common_events] || Resources::Collections::CommonEventCollection.new
+      @collections = Hash[COLLECTION_TYPE_MAP.map do |key, item_type|
+                            collection = resources[key] || Resources::Collection.new(item_type)
+                            [key, collection]
+                          end]
     end
 
     # Loads the database components of a project.
     # @param path [String] Path to the 'Data' directory in the project.
     # @return [Database]
     def self.load(path)
-      # Generate filepaths for each resource.
-      resource_paths = {
-          :actors        => File.join(path, ACTORS_FILE),
-          :classes       => File.join(path, CLASSES_FILE),
-          :skills        => File.join(path, SKILLS_FILE),
-          :items         => File.join(path, ITEMS_FILE),
-          :weapons       => File.join(path, WEAPONS_FILE),
-          :armors        => File.join(path, ARMORS_FILE),
-          :enemies       => File.join(path, ENEMIES_FILE),
-          :troops        => File.join(path, TROOPS_FILE),
-          :states        => File.join(path, STATES_FILE),
-          :animations    => File.join(path, ANIMATIONS_FILE),
-          :tilesets      => File.join(path, TILESETS_FILE),
-          :common_events => File.join(path, COMMON_EVENTS_FILE)
-      }
+      # Generate file paths for each collection.
+      resource_paths = Hash[COLLECTION_FILE_NAMES.map do |key, file_name|
+                              file_path = File.join(path, file_name)
+                              [key, file_path]
+                            end]
 
-      # Load each resource.
-      resources = {
-          :actors        => Resources::Collections::ActorCollection.load(resource_paths[:actors]),
-          :classes       => Resources::Collections::ClassCollection.load(resource_paths[:classes]),
-          :skills        => Resources::Collections::SkillCollection.load(resource_paths[:skills]),
-          :items         => Resources::Collections::ItemCollection.load(resource_paths[:items]),
-          :weapons       => Resources::Collections::WeaponCollection.load(resource_paths[:weapons]),
-          :armors        => Resources::Collections::ArmorCollection.load(resource_paths[:armors]),
-          :enemies       => Resources::Collections::EnemyCollection.load(resource_paths[:enemies]),
-          :troops        => Resources::Collections::TroopCollection.load(resource_paths[:troops]),
-          :states        => Resources::Collections::StateCollection.load(resource_paths[:states]),
-          :animations    => Resources::Collections::AnimationCollection.load(resource_paths[:animations]),
-          :tilesets      => Resources::Collections::TilesetCollection.load(resource_paths[:tilesets]),
-          :common_events => Resources::Collections::CommonEventCollection.load(resource_paths[:common_events])
-      }
+      # Load the collections.
+      resources = Hash[resource_paths.map do |key, file_path|
+                         item_type  = COLLECTION_TYPE_MAP[key]
+                         collection = Resources::Collection.load(file_path, item_type)
+                         [key, collection]
+                       end]
 
+      # Create the database.
       Database.new(resources)
     end
 
@@ -156,21 +162,16 @@ module RPGMakerVX
     # @param path [String] Path to the 'Data' directory in the project.
     # @return [void]
     def save(path)
-      {
-          File.join(path, ACTORS_FILE)        => @actors,
-          File.join(path, CLASSES_FILE)       => @classes,
-          File.join(path, SKILLS_FILE)        => @skills,
-          File.join(path, ITEMS_FILE)         => @items,
-          File.join(path, WEAPONS_FILE)       => @weapons,
-          File.join(path, ARMORS_FILE)        => @armors,
-          File.join(path, ENEMIES_FILE)       => @enemies,
-          File.join(path, TROOPS_FILE)        => @troops,
-          File.join(path, STATES_FILE)        => @states,
-          File.join(path, ANIMATIONS_FILE)    => @animations,
-          File.join(path, TILESETS_FILE)      => @tilesets,
-          File.join(path, COMMON_EVENTS_FILE) => @common_events
-      }.each do |filepath, resource|
-        resource.save(filepath)
+      # Gather up the collections and map their content to a file.
+      save_map = Hash[@collections.map do |key, collection|
+                        file_name = COLLECTION_FILE_NAMES[key]
+                        file_path = File.join(path, file_name)
+                        [file_path, collection]
+                      end]
+
+      # Save each resource to its file.
+      save_map.each do |file_path, resource|
+        resource.save(file_path)
       end
     end
 
