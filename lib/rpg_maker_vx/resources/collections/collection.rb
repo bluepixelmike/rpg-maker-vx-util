@@ -2,7 +2,7 @@ module RPGMakerVX
   module Resources
     module Collections
 
-      # Base class for database items that are sets of resources.
+      # Base class for sets of identifiable database resources.
       # @abstract
       class Collection
         include Enumerable
@@ -18,9 +18,10 @@ module RPGMakerVX
         # @param value New item to add.
         # @return [self]
         # @raise [TypeError] The item being added isn't the same type as the others.
+        # @note If an item already exists with the same ID, it will be overwritten.
         def <<(value)
           fail TypeError unless value.kind_of?(@type)
-          @items << value
+          @items[value.id] = value
           self
         end
 
@@ -40,20 +41,11 @@ module RPGMakerVX
 
         alias_method :size, :length
 
-        # Retrieves an item by index.
-        # @param index [Fixnum] Index of the item.
-        # @return Item at the specified index.
-        def [](index)
-          @items[index]
-        end
-
-        # Updates an item at an index.
-        # @param index [Fixnum] Index of the item.
-        # @param value New item to put in place.
-        # @return [void]
-        def []=(index, value)
-          fail TypeError unless value.kind_of?(@type)
-          @items[index] = value
+        # Retrieves an item by ID.
+        # @param id [Fixnum] ID of the item to retrieve.
+        # @return Item with the specified ID.
+        def [](id)
+          @items[id]
         end
 
         # Loads a collection of items from an RPG Maker VX data file.
@@ -70,26 +62,27 @@ module RPGMakerVX
           fail TypeError unless obj.is_a?(Array)
 
           # Only select the objects of the expected type.
-          # This also removes nil-values, especially the leading one.
-          obj.select do |item|
+          items = obj.select do |item|
             item.kind_of?(type)
           end
+
+          # Add items to collection.
+          collection = Collection.new(type)
+          items.each do |item|
+            collection << item
+          end
+
+          collection
         end
 
         # Saves the collection of items to an RPG Maker VX data file.
         # @param filename [String] Path to the file to save to.
         # @return [void]
         def save(filename)
-          # Create the list to marshal.
-          # The first item is always nil.
-          list = [nil]
-          list.concat(@items)
-
           # Dump the data to the file.
           File.open(filename, 'wb') do |f|
-            f.write Marshal.dump(list)
+            f.write Marshal.dump(@items)
           end
-
           nil
         end
 
