@@ -6,4 +6,4 @@ module RPGMakerVX
 
 end
 
-require_relative 'resources/collections'
+require_relative 'resources/collection'
