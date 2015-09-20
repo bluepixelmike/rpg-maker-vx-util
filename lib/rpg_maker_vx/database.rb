@@ -40,6 +40,9 @@ module RPGMakerVX
         :common_events => ::RPG::CommonEvent
     }.freeze
 
+    # Name of the system file.
+    SYSTEM_FILE_NAME = ('System' + DATA_FILE_EXTENSION).freeze
+
     # @!attribute [r] actors
     # Provides access to actor information.
     # @return [Resources::Collection<::RPG::Actor>]
@@ -124,9 +127,9 @@ module RPGMakerVX
       @collections[:common_events]
     end
 
+    # Provides access to system and term information.
+    # @return [::RPG::System]
     attr_reader :system
-
-    attr_reader :terms
 
     # Creates an database with pre-populated resources.
     # @param resources [Hash<Symbol => Resources::Collections::Collection>]
@@ -135,6 +138,7 @@ module RPGMakerVX
                             collection = resources[key] || Resources::Collection.new(item_type)
                             [key, collection]
                           end]
+      @system = resources[:system]
     end
 
     # Loads the database components of a project.
@@ -154,6 +158,14 @@ module RPGMakerVX
                          [key, collection]
                        end]
 
+      # Load the system data.
+      sys_path = File.join(path, SYSTEM_FILE_NAME)
+      sys = File.open(sys_path, 'rb') do |f|
+        Marshal.load(f)
+      end
+      fail TypeError unless sys.kind_of?(::RPG::System)
+      resources[:system] = sys
+
       # Create the database.
       Database.new(resources)
     end
@@ -168,6 +180,10 @@ module RPGMakerVX
                         file_path = File.join(path, file_name)
                         [file_path, collection]
                       end]
+
+      # Add system data.
+      sys_path = File.join(path, SYSTEM_FILE_NAME)
+      save_map[sys_path] = @system
 
       # Save each resource to its file.
       save_map.each do |file_path, resource|
